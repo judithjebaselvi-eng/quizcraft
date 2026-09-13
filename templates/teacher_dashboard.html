@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - QuizCraft</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body class="dashboard-page">
+    {% include 'navbar.html' %}
+    
+    <div class="dashboard-container">
+        {% include 'teacher_sidebar.html' %}
+        
+        <main class="main-content">
+            <div class="page-header">
+                <div class="header-content">
+                    <h1>Dashboard</h1>
+                    <p>Welcome, {{ user.full_name }}! 👋</p>
+                </div>
+                <a href="{{ url_for('tests.create_test') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> CREATE TEST
+                </a>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card gradient-blue">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ total_tests }}</h3>
+                        <p>Total Tests</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card gradient-purple">
+                    <div class="stat-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ published_tests }}</h3>
+                        <p>Published Tests</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card gradient-pink">
+                    <div class="stat-icon">
+                        <i class="fas fa-draft2digital"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ draft_tests }}</h3>
+                        <p>Draft Tests</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card gradient-violet">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ total_attempts }}</h3>
+                        <p>Total Attempts</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metrics Row -->
+            <div class="metrics-container">
+                <div class="metric-card">
+                    <h3>Average Score</h3>
+                    <div class="metric-value">{{ "%.1f"|format(average_score) }}%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {{ average_score }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>Profile Completion</h3>
+                    <div class="metric-value">{% if profile.degree and profile.department and profile.year %}100{% else %}{{ [profile.degree, profile.department, profile.year] | length * 33 | int }}{% endif %}%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {% if profile.degree and profile.department and profile.year %}100{% else %}{{ [profile.degree, profile.department, profile.year] | length * 33 | int }}{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Tests Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Recent Tests</h2>
+                    <a href="{{ url_for('teacher.my_tests') }}" class="view-all-link">View All</a>
+                </div>
+                
+                {% if recent_tests %}
+                <div class="tests-list">
+                    {% for test in recent_tests %}
+                    <div class="test-item">
+                        <div class="test-header">
+                            <h3>{{ test.name }}</h3>
+                            <span class="status-badge status-{{ test.status }}">{{ test.status | upper }}</span>
+                        </div>
+                        <div class="test-info">
+                            <span class="info-item">
+                                <i class="fas fa-book"></i> {{ test.subject }}
+                            </span>
+                            <span class="info-item">
+                                <i class="fas fa-list"></i> {{ test.get_question_count() }} Questions
+                            </span>
+                            <span class="info-item">
+                                <i class="fas fa-star"></i> {{ test.total_marks }} Marks
+                            </span>
+                        </div>
+                        <div class="test-actions">
+                            <a href="{{ url_for('teacher.view_test', test_id=test.id) }}" class="btn btn-sm btn-outline">
+                                View
+                            </a>
+                            <a href="{{ url_for('teacher.edit_test', test_id=test.id) }}" class="btn btn-sm btn-outline">
+                                Edit
+                            </a>
+                            {% if test.is_published %}
+                            <a href="{{ url_for('results.test_results', test_id=test.id) }}" class="btn btn-sm btn-outline">
+                                Results
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No tests yet. Create your first test to get started!</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
