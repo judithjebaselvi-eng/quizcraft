@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result - QuizCraft</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exam.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="result-page">
+    <div class="result-container">
+        <div class="result-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-check-circle"></i>
+                <span>QuizCraft</span>
+            </div>
+        </div>
+        
+        <div class="result-card">
+            <!-- Celebration Message -->
+            <div class="celebration-message" id="celebration">
+                <div class="celebration-emoji" id="celebration-emoji">🎉</div>
+                <h1 id="celebration-message">Great Job!</h1>
+                <p id="celebration-subtitle">You did excellent!</p>
+            </div>
+            
+            <!-- Score Display -->
+            <div class="score-display">
+                <div class="score-circle">
+                    <div class="score-percentage" id="percentage-display">{{ "%.1f"|format(attempt.percentage) }}%</div>
+                    <svg class="score-ring" width="200" height="200">
+                        <circle class="score-ring-circle" stroke="#e5e7eb" fill="transparent" stroke-width="8" r="92" cx="100" cy="100" />
+                        <circle 
+                            class="score-ring-circle-fill" 
+                            stroke="#4F46E5" 
+                            fill="transparent" 
+                            stroke-width="8" 
+                            r="92" 
+                            cx="100" 
+                            cy="100"
+                            style="stroke-dasharray: {{ (attempt.percentage / 100) * 580 }}px 580px;"
+                        />
+                    </svg>
+                </div>
+                
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <span class="score-label">Score</span>
+                        <span class="score-value">{{ attempt.score }} / {{ attempt.test.total_marks }}</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Correct</span>
+                        <span class="score-value score-correct">{{ attempt.correct_count }}</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Wrong</span>
+                        <span class="score-value score-wrong">{{ attempt.wrong_count }}</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Unanswered</span>
+                        <span class="score-value score-unanswered">{{ attempt.unanswered_count }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Information -->
+            <div class="test-info-section">
+                <h2>Test Details</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Test Name</span>
+                        <span class="info-value">{{ attempt.test.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Subject</span>
+                        <span class="info-value">{{ attempt.test.subject }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Completed At</span>
+                        <span class="info-value">{{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Time Taken</span>
+                        <span class="info-value">{{ attempt.get_duration_display() }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student Information -->
+            <div class="student-info-section">
+                <h2>Student Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Name</span>
+                        <span class="info-value">{{ attempt.student_name }}</span>
+                    </div>
+                    {% if attempt.student_registration_no %}
+                    <div class="info-item">
+                        <span class="info-label">Registration Number</span>
+                        <span class="info-value">{{ attempt.student_registration_no }}</span>
+                    </div>
+                    {% endif %}
+                    {% if attempt.student_degree %}
+                    <div class="info-item">
+                        <span class="info-label">Degree</span>
+                        <span class="info-value">{{ attempt.student_degree }}</span>
+                    </div>
+                    {% endif %}
+                    {% if attempt.student_department %}
+                    <div class="info-item">
+                        <span class="info-label">Department</span>
+                        <span class="info-value">{{ attempt.student_department }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Answer Review -->
+            {% if attempt.student_answers %}
+            <div class="answer-review-section">
+                <h2>Answer Review</h2>
+                <div class="answers-list">
+                    {% for answer in attempt.student_answers %}
+                    {% if not answer.is_correct %}
+                    <div class="answer-item">
+                        <div class="answer-question">
+                            <span class="question-num">Question {{ loop.index }}</span>
+                            <h4>{{ answer.question.question_text }}</h4>
+                        </div>
+                        
+                        <div class="answer-content">
+                            {% if answer.is_correct == False %}
+                            <div class="answer-row">
+                                <span class="label">Your Answer:</span>
+                                <span class="your-answer">{{ answer.answer_text or 'Not answered' }}</span>
+                            </div>
+                            
+                            {% if answer.question.question_type == 'mcq' %}
+                                {% set correct_option = answer.question.options | selectattr('is_correct', 'equalto', True) | first %}
+                                <div class="answer-row">
+                                    <span class="label">Correct Answer:</span>
+                                    <span class="correct-answer">{{ correct_option.option_text }}</span>
+                                </div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="result-actions">
+                <a href="/" class="btn btn-outline">
+                    <i class="fas fa-home"></i> Go Home
+                </a>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Result
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/result.js') }}"></script>
+    <script>
+        window.percentage = {{ attempt.percentage }};
+        window.totalQuestions = {{ attempt.test.get_question_count() }};
+    </script>
+</body>
+</html>

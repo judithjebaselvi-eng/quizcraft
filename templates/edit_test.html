@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Test - QuizCraft</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exam.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page">
+    {% include 'navbar.html' %}
+    
+    <div class="dashboard-container">
+        {% include 'teacher_sidebar.html' %}
+        
+        <main class="main-content">
+            <div class="page-header">
+                <h1>{{ test.name }}</h1>
+                <span class="test-id">Test ID: {{ test.test_id }}</span>
+            </div>
+            
+            <div class="edit-test-container">
+                <form method="POST" id="edit-form" class="test-form">
+                    <!-- Test Details Section -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-info-circle"></i> Test Details</h2>
+                        
+                        <div class="form-group">
+                            <label for="name">Test Name *</label>
+                            <input type="text" id="name" name="name" value="{{ test.name }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="3">{{ test.description or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <input type="text" id="subject" name="subject" value="{{ test.subject or '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="topic">Topic</label>
+                                <input type="text" id="topic" name="topic" value="{{ test.topic or '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="difficulty">Difficulty</label>
+                                <select id="difficulty" name="difficulty">
+                                    <option value="easy" {% if test.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+                                    <option value="medium" {% if test.difficulty == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="hard" {% if test.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="total_marks">Total Marks</label>
+                                <input type="number" id="total_marks" name="total_marks" value="{{ test.total_marks or 0 }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time & Duration Section -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-clock"></i> Time & Duration</h2>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="availability_enabled" name="availability_enabled" {% if test.availability_enabled %}checked{% endif %}>
+                            <label for="availability_enabled">Enable Time Restrictions</label>
+                        </div>
+                        
+                        <div id="availability-options" class="availability-options" style="{% if not test.availability_enabled %}display:none;{% endif %}">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start_date">Start Date</label>
+                                    <input type="date" id="start_date" name="start_date" value="{% if test.start_datetime %}{{ test.start_datetime.strftime('%Y-%m-%d') }}{% endif %}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="start_time">Start Time</label>
+                                    <input type="time" id="start_time" name="start_time" value="{% if test.start_datetime %}{{ test.start_datetime.strftime('%H:%M') }}{% endif %}">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="end_date">End Date</label>
+                                    <input type="date" id="end_date" name="end_date" value="{% if test.end_datetime %}{{ test.end_datetime.strftime('%Y-%m-%d') }}{% endif %}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="end_time">End Time</label>
+                                    <input type="time" id="end_time" name="end_time" value="{% if test.end_datetime %}{{ test.end_datetime.strftime('%H:%M') }}{% endif %}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="duration_enabled" name="duration_enabled" {% if test.duration_enabled %}checked{% endif %}>
+                            <label for="duration_enabled">Enable Exam Duration</label>
+                        </div>
+                        
+                        <div id="duration-options" class="duration-options" style="{% if not test.duration_enabled %}display:none;{% endif %}">
+                            <div class="form-group">
+                                <label for="duration_minutes">Duration (minutes)</label>
+                                <select id="duration_minutes" name="duration_minutes">
+                                    <option value="5" {% if test.duration_minutes == 5 %}selected{% endif %}>5 minutes</option>
+                                    <option value="10" {% if test.duration_minutes == 10 %}selected{% endif %}>10 minutes</option>
+                                    <option value="15" {% if test.duration_minutes == 15 %}selected{% endif %}>15 minutes</option>
+                                    <option value="20" {% if test.duration_minutes == 20 %}selected{% endif %}>20 minutes</option>
+                                    <option value="30" {% if test.duration_minutes == 30 %}selected{% endif %}>30 minutes</option>
+                                    <option value="45" {% if test.duration_minutes == 45 %}selected{% endif %}>45 minutes</option>
+                                    <option value="60" {% if test.duration_minutes == 60 %}selected{% endif %}>60 minutes</option>
+                                    <option value="90" {% if test.duration_minutes == 90 %}selected{% endif %}>90 minutes</option>
+                                    <option value="120" {% if test.duration_minutes == 120 %}selected{% endif %}>120 minutes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Section -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="randomize_questions" name="randomize_questions" {% if test.randomize_questions %}checked{% endif %}>
+                            <label for="randomize_questions">Randomize Questions</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="randomize_options" name="randomize_options" {% if test.randomize_options %}checked{% endif %}>
+                            <label for="randomize_options">Randomize Options</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="auto_submit" name="auto_submit" {% if test.auto_submit %}checked{% endif %}>
+                            <label for="auto_submit">Auto-Submit When Time Ends</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="immediate_results" name="immediate_results" {% if test.immediate_results %}checked{% endif %}>
+                            <label for="immediate_results">Show Results Immediately</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions Section -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-clipboard-list"></i> Instructions</h2>
+                        <div class="form-group">
+                            <label for="instructions">Test Instructions</label>
+                            <textarea id="instructions" name="instructions" rows="4" placeholder="Enter instructions students will see before starting the test">{{ test.instructions or '' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="history.back()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Show/hide availability options
+        document.getElementById('availability_enabled').addEventListener('change', function() {
+            document.getElementById('availability-options').style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Show/hide duration options
+        document.getElementById('duration_enabled').addEventListener('change', function() {
+            document.getElementById('duration-options').style.display = this.checked ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

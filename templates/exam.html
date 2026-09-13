@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam - QuizCraft</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exam.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="exam-page">
+    <div class="exam-interface">
+        <!-- Header -->
+        <div class="exam-header-bar">
+            <div class="header-left">
+                <div class="logo-mini">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="test-title-mini">
+                    <h3>{{ test.name }}</h3>
+                    <p>{{ test.test_id }}</p>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="progress-info">
+                    <span id="current-question">1</span> / <span id="total-questions">{{ questions | length }}</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                {% if test.duration_enabled and test.duration_minutes %}
+                <div class="timer" id="timer">
+                    <i class="fas fa-hourglass-end"></i>
+                    <span id="time-display">{{ test.duration_minutes }}:00</span>
+                </div>
+                {% endif %}
+                
+                <button class="btn btn-icon" onclick="openMenu()" title="Menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="exam-content">
+            <!-- Questions Panel -->
+            <div class="questions-panel">
+                <div id="questions-container" class="questions-container">
+                    {% for question in questions %}
+                    <div class="question-block" id="question-{{ loop.index0 }}" style="{% if loop.index != 1 %}display:none;{% endif %}">
+                        <div class="question-header">
+                            <h2>Question {{ loop.index }}</h2>
+                            <span class="question-marks">{{ test.questions[loop.index0].marks }} mark{{ 's' if test.questions[loop.index0].marks != 1 else '' }}</span>
+                        </div>
+                        
+                        <div class="question-text">
+                            {{ question.question_text }}
+                        </div>
+                        
+                        <div class="question-options">
+                            {% if question.question_type == 'mcq' or question.question_type == 'true_false' %}
+                                <div class="options-list">
+                                    {% for option in question.options %}
+                                    <label class="option-item">
+                                        <input 
+                                            type="radio" 
+                                            name="q_{{ question.id }}" 
+                                            value="{{ option.id }}"
+                                            data-question="{{ loop.index0 }}"
+                                        >
+                                        <span class="option-text">{{ option.option_text }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            
+                            {% elif question.question_type == 'fill_blanks' or question.question_type == 'one_word' or question.question_type == 'short_answer' %}
+                                <input 
+                                    type="text" 
+                                    class="answer-input" 
+                                    name="q_{{ question.id }}"
+                                    placeholder="Enter your answer"
+                                    data-question="{{ loop.index0 }}"
+                                >
+                            
+                            {% elif question.question_type == 'long_answer' %}
+                                <textarea 
+                                    class="answer-textarea" 
+                                    name="q_{{ question.id }}"
+                                    placeholder="Write your answer here..."
+                                    rows="5"
+                                    data-question="{{ loop.index0 }}"
+                                ></textarea>
+                            
+                            {% elif question.question_type == 'coding' %}
+                                <div class="code-editor">
+                                    <textarea 
+                                        class="code-input" 
+                                        name="q_{{ question.id }}"
+                                        placeholder="Write your code here..."
+                                        rows="8"
+                                        data-question="{{ loop.index0 }}"
+                                    ></textarea>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="question-navigation">
+                    <button type="button" class="btn btn-outline" id="prev-btn" onclick="previousQuestion()" style="display:none;">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <div class="spacer"></div>
+                    <button type="button" class="btn btn-outline" id="next-btn" onclick="nextQuestion()">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" id="submit-btn" onclick="submitTest()" style="display:none;">
+                        <i class="fas fa-check"></i> SUBMIT
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Questions Navigator (Sidebar on Desktop) -->
+            <div class="questions-navigator">
+                <div class="navigator-header">
+                    <h3>Questions</h3>
+                </div>
+                <div class="navigator-list">
+                    {% for i in range(questions | length) %}
+                    <button 
+                        type="button" 
+                        class="nav-item {% if i == 0 %}active{% endif %}" 
+                        onclick="goToQuestion({{ i }})"
+                        data-question="{{ i }}"
+                    >
+                        <span class="nav-number">{{ i + 1 }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+                
+                <div class="navigator-actions">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmSubmit()">
+                        <i class="fas fa-paper-plane"></i> Submit Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Submit Confirmation Modal -->
+    <div id="submit-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Submit Test?</h2>
+            <p>Are you sure you want to submit your test?</p>
+            <p class="warning-text"><i class="fas fa-exclamation-triangle"></i> You won't be able to change your answers after submitting.</p>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">
+                    CANCEL
+                </button>
+                <button type="button" class="btn btn-danger" onclick="finalSubmit()">
+                    YES, SUBMIT
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+    <script>
+        // Initialize exam
+        window.attemptId = '{{ attempt.attempt_id }}';
+        window.testId = {{ test.id }};
+        window.totalMarks = {{ test.total_marks }};
+        window.durationEnabled = {{ 'true' if test.duration_enabled else 'false' }};
+        window.durationMinutes = {{ test.duration_minutes or 0 }};
+        window.autoSubmit = {{ 'true' if test.auto_submit else 'false' }};
+        window.totalQuestions = {{ questions | length }};
+    </script>
+</body>
+</html>

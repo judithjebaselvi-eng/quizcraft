@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Test - QuizCraft</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exam.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="exam-page">
+    <div class="exam-container">
+        <div class="exam-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-check-circle"></i>
+                <span>QuizCraft</span>
+            </div>
+        </div>
+        
+        <div class="test-info-card">
+            <div class="info-header">
+                <h1>{{ test.name }}</h1>
+                <span class="test-id">{{ test.test_id }}</span>
+            </div>
+            
+            <div class="info-details">
+                <div class="detail-item">
+                    <i class="fas fa-book"></i>
+                    <div>
+                        <span class="label">Subject</span>
+                        <span class="value">{{ test.subject }}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <i class="fas fa-list"></i>
+                    <div>
+                        <span class="label">Questions</span>
+                        <span class="value">{{ test.get_question_count() }}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <span class="label">Total Marks</span>
+                        <span class="value">{{ test.total_marks }}</span>
+                    </div>
+                </div>
+                
+                {% if test.duration_enabled and test.duration_minutes %}
+                <div class="detail-item">
+                    <i class="fas fa-hourglass-end"></i>
+                    <div>
+                        <span class="label">Duration</span>
+                        <span class="value">{{ test.duration_minutes }} minutes</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Instructions -->
+            {% if test.instructions %}
+            <div class="instructions-section">
+                <h2>Instructions</h2>
+                <div class="instructions-content">
+                    {{ test.instructions }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Student Information Form -->
+            <form method="POST" class="student-info-form">
+                <h2>Your Information</h2>
+                
+                <div class="form-group">
+                    <label for="student_name">Full Name *</label>
+                    <input type="text" id="student_name" name="student_name" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="student_registration_no">Registration Number / Roll Number</label>
+                    <input type="text" id="student_registration_no" name="student_registration_no" placeholder="E.g., 23IT001">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="student_degree">Degree</label>
+                        <input type="text" id="student_degree" name="student_degree" placeholder="E.g., B.Tech">
+                    </div>
+                    <div class="form-group">
+                        <label for="student_department">Department</label>
+                        <input type="text" id="student_department" name="student_department" placeholder="E.g., Information Technology">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="student_year">Year</label>
+                        <input type="text" id="student_year" name="student_year" placeholder="E.g., 3rd Year">
+                    </div>
+                    <div class="form-group">
+                        <label for="student_section">Section</label>
+                        <input type="text" id="student_section" name="student_section" placeholder="E.g., A">
+                    </div>
+                </div>
+                
+                <!-- Custom Fields -->
+                {% if custom_fields %}
+                <div class="custom-fields-section">
+                    <h3>Additional Information</h3>
+                    {% for field in custom_fields %}
+                    <div class="form-group">
+                        <label for="field_{{ field.id }}">
+                            {{ field.field_name }}
+                            {% if field.is_required %}
+                            <span class="required">*</span>
+                            {% endif %}
+                        </label>
+                        <input 
+                            type="{{ field.field_type }}" 
+                            id="field_{{ field.id }}" 
+                            name="field_{{ field.id }}"
+                            {% if field.is_required %}required{% endif %}
+                        >
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="form-actions">
+                    <a href="javascript:history.back()" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-play"></i> START TEST
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
